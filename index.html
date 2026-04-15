@@ -1,0 +1,4193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAILORGG · 数码应用笔记</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* =============================================
+       ROOT VARIABLES
+    ============================================= */
+    :root {
+      --bg-deep:    #080b12;
+      --bg-panel:   #0e1320;
+      --bg-card:    #111827;
+      --border:     #1e293b;
+      --border-glow:#2dd4bf33;
+      --cyan:       #2dd4bf;
+      --pink:       #f472b6;
+      --amber:      #fbbf24;
+      --purple:     #a78bfa;
+      --text-pri:   #e2e8f0;
+      --text-sec:   #94a3b8;
+      --text-dim:   #475569;
+      --font-mono:  'Space Mono', monospace;
+      --font-serif: 'Noto Serif SC', serif;
+      --font-display: 'Syne', sans-serif;
+      --glow-cyan:  0 0 20px #2dd4bf40, 0 0 60px #2dd4bf18;
+      --glow-pink:  0 0 20px #f472b640, 0 0 60px #f472b618;
+    }
+
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-serif);
+      background: var(--bg-deep);
+      color: var(--text-pri);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.7;
+    }
+
+    /* Scan-line overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,.08) 2px,
+        rgba(0,0,0,.08) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Ambient glow blobs */
+    .ambient {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: .12;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ambient-1 { width: 600px; height: 600px; background: var(--cyan);  top: -200px; left: -200px; }
+    .ambient-2 { width: 500px; height: 500px; background: var(--pink);  bottom: -150px; right: -150px; }
+    .ambient-3 { width: 400px; height: 400px; background: var(--purple); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+
+    /* =============================================
+       NAV
+    ============================================= */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(8,11,18,.85);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: .05em;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-px { color: var(--cyan); }
+    .logo-el { color: var(--text-pri); }
+    .logo-dot {
+      width: 8px; height: 8px;
+      background: var(--pink);
+      border-radius: 50%;
+      box-shadow: var(--glow-pink);
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity:1; }
+      50%  { opacity:.2; }
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 32px;
+    }
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      color: var(--text-sec);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      transition: color .2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 0; height: 1px;
+      background: var(--cyan);
+      transition: width .3s;
+    }
+    .nav-links a:hover { color: var(--cyan); }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-cta {
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      padding: 8px 20px;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      background: transparent;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      transition: all .3s;
+      text-decoration: none;
+    }
+    .nav-cta:hover {
+      background: var(--cyan);
+      color: var(--bg-deep);
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* =============================================
+       LAYOUT WRAPPER
+    ============================================= */
+    .site-wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* =============================================
+       HERO
+    ============================================= */
+    .hero {
+      padding: 100px 0 80px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .hero-label {
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: .2em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero-label::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--cyan);
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    .hero h1 .hl-cyan { color: var(--cyan); }
+    .hero h1 .hl-pink { color: var(--pink); }
+    .hero-desc {
+      font-size: 1.05rem;
+      color: var(--text-sec);
+      max-width: 480px;
+      margin-bottom: 40px;
+      line-height: 1.8;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      padding: 14px 32px;
+      background: var(--cyan);
+      color: var(--bg-deep);
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all .3s;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+    .btn-primary:hover {
+      box-shadow: var(--glow-cyan);
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      padding: 14px 32px;
+      background: transparent;
+      color: var(--text-sec);
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all .3s;
+    }
+    .btn-secondary:hover {
+      border-color: var(--text-sec);
+      color: var(--text-pri);
+    }
+
+    /* Hero stats */
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      margin-top: 48px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+    .stat-item { text-align: left; }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    /* Hero visual - terminal card */
+    .hero-visual {
+      position: relative;
+    }
+    .terminal {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,.5), 0 0 0 1px var(--border-glow);
+    }
+    .terminal-bar {
+      background: #0d1117;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tb-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .tb-dot.r { background: #ff5f57; }
+    .tb-dot.y { background: #febc2e; }
+    .tb-dot.g { background: #28c840; }
+    .tb-title {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-dim);
+      margin-left: 8px;
+    }
+    .terminal-body {
+      padding: 24px;
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      line-height: 2;
+    }
+    .t-prompt { color: var(--cyan); }
+    .t-cmd   { color: var(--text-pri); }
+    .t-comment { color: var(--text-dim); }
+    .t-key   { color: var(--pink); }
+    .t-val   { color: var(--amber); }
+    .t-str   { color: #86efac; }
+    .t-cursor {
+      display: inline-block;
+      width: 8px; height: 14px;
+      background: var(--cyan);
+      vertical-align: middle;
+      animation: blink .8s step-end infinite;
+    }
+
+    /* Floating badge */
+    .floating-badge {
+      position: absolute;
+      top: -20px; right: -20px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 90px; height: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: float 4s ease-in-out infinite;
+      box-shadow: var(--glow-cyan);
+    }
+    .floating-badge .fb-num {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: var(--cyan);
+      line-height: 1;
+    }
+    .floating-badge .fb-label {
+      font-family: var(--font-mono);
+      font-size: .55rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* =============================================
+       SECTION HEADERS
+    ============================================= */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.8rem;
+      position: relative;
+      display: inline-block;
+    }
+    .section-title .accent {
+      color: var(--cyan);
+    }
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -6px; left: 0;
+      width: 40px; height: 2px;
+      background: var(--cyan);
+      box-shadow: var(--glow-cyan);
+    }
+    .section-more {
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      transition: color .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-more:hover { color: var(--cyan); }
+
+    /* =============================================
+       FEATURED POST (large)
+    ============================================= */
+    .featured-section { padding: 60px 0; }
+    .featured-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+    .featured-main {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all .4s;
+      position: relative;
+      group: true;
+    }
+    .featured-main:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 20px 60px rgba(0,0,0,.4), inset 0 1px 0 var(--border-glow);
+      transform: translateY(-4px);
+    }
+    .featured-main .fm-img {
+      height: 260px;
+      background: linear-gradient(135deg, #0f172a, #1e3a5f);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .fm-img-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 30% 50%, #2dd4bf18 0%, transparent 60%),
+        radial-gradient(circle at 70% 30%, #a78bfa18 0%, transparent 60%);
+    }
+    .fm-app-icon {
+      width: 80px; height: 80px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+    .fm-cat-tag {
+      position: absolute;
+      top: 16px; left: 16px;
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      padding: 4px 10px;
+      border: 1px solid currentColor;
+      z-index: 2;
+    }
+    .fm-new-tag {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: var(--pink);
+      color: var(--bg-deep);
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: 4px 10px;
+      z-index: 2;
+    }
+    .fm-body {
+      padding: 28px;
+    }
+    .fm-body h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .fm-body p {
+      color: var(--text-sec);
+      font-size: .9rem;
+      margin-bottom: 20px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .fm-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .fm-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-dim);
+    }
+    .fm-rating {
+      display: flex;
+      gap: 3px;
+      color: var(--amber);
+      font-size: .85rem;
+    }
+    .fm-read-btn {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .fm-read-btn svg {
+      transition: transform .3s;
+    }
+    .featured-main:hover .fm-read-btn svg {
+      transform: translateX(4px);
+    }
+
+    /* Side cards stack */
+    .featured-side {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .side-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 20px;
+      cursor: pointer;
+      transition: all .3s;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .side-card:hover {
+      border-color: var(--border-glow);
+      background: #151e30;
+      transform: translateX(4px);
+    }
+    .sc-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .sc-content h3 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .sc-content p {
+      font-size: .8rem;
+      color: var(--text-sec);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .sc-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--text-dim);
+    }
+    .sc-tag {
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: .6rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* =============================================
+       CATEGORY FILTER
+    ============================================= */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .filter-btn {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      transition: all .25s;
+    }
+    .filter-btn:hover,
+    .filter-btn.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(45,212,191,.06);
+    }
+
+    /* =============================================
+       ARTICLES GRID
+    ============================================= */
+    .articles-section { padding: 20px 0 80px; }
+    .articles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .article-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all .35s;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .article-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 2px; height: 0;
+      background: var(--cyan);
+      transition: height .4s;
+    }
+    .article-card:hover { border-color: #1e3a5f; transform: translateY(-6px); box-shadow: 0 24px 48px rgba(0,0,0,.4); }
+    .article-card:hover::before { height: 100%; }
+    .ac-thumb {
+      height: 160px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ac-thumb-bg {
+      position: absolute;
+      inset: 0;
+    }
+    .ac-app-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    }
+    .ac-tag {
+      position: absolute;
+      bottom: 12px; left: 12px;
+      font-family: var(--font-mono);
+      font-size: .6rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      padding: 3px 8px;
+      border: 1px solid currentColor;
+      z-index: 2;
+    }
+    .ac-body {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .ac-body h3 {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+    .ac-body p {
+      font-size: .82rem;
+      color: var(--text-sec);
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .ac-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .ac-footer-meta {
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--text-dim);
+      display: flex;
+      gap: 12px;
+    }
+    .ac-rating {
+      color: var(--amber);
+      font-size: .8rem;
+      letter-spacing: 2px;
+    }
+
+    /* =============================================
+       MAIN + SIDEBAR LAYOUT
+    ============================================= */
+    .content-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 48px;
+      padding: 40px 0 80px;
+    }
+
+    /* =============================================
+       SIDEBAR
+    ============================================= */
+    .sidebar { display: flex; flex-direction: column; gap: 32px; }
+
+    .sidebar-widget {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 24px;
+    }
+    .sw-title {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sw-title::before {
+      content: '//';
+      color: var(--cyan);
+    }
+
+    /* About me */
+    .about-avatar {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      border: 2px solid var(--border);
+    }
+    .about-name {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .about-handle {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--cyan);
+      margin-bottom: 12px;
+    }
+    .about-bio {
+      font-size: .82rem;
+      color: var(--text-sec);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+    .about-links {
+      display: flex;
+      gap: 10px;
+    }
+    .about-link {
+      width: 34px; height: 34px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all .2s;
+      text-decoration: none;
+    }
+    .about-link:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    /* Top apps list */
+    .app-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .app-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .app-item:hover {
+      background: rgba(255,255,255,.03);
+      border-color: var(--border);
+    }
+    .app-rank {
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--text-dim);
+      width: 20px;
+      text-align: center;
+    }
+    .app-icon-sm {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .app-info { flex: 1; min-width: 0; }
+    .app-info-name {
+      font-size: .85rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .app-info-cat {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .app-score {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--amber);
+    }
+
+    /* Tags */
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tag:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(45,212,191,.04);
+    }
+
+    /* Calculator Widget */
+    .calc-widget-link {
+      text-decoration: none;
+      display: block;
+    }
+    .calc-widget {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .3s;
+    }
+    .calc-widget:hover {
+      border-color: var(--cyan);
+      background: rgba(45,212,191,.05);
+      transform: translateX(4px);
+    }
+    .calc-widget-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1a1f2e, #0d1117);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .calc-widget-info {
+      flex: 1;
+    }
+    .calc-widget-name {
+      font-family: var(--font-display);
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text-pri);
+      margin-bottom: 2px;
+    }
+    .calc-widget-desc {
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--text-dim);
+    }
+    .calc-widget-arrow {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: var(--text-dim);
+      transition: all .3s;
+    }
+    .calc-widget:hover .calc-widget-arrow {
+      color: var(--cyan);
+      transform: translateX(4px);
+    }
+
+    /* =============================================
+       NEWSLETTER
+    ============================================= */
+    .newsletter-section {
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 80px 0;
+      margin: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .newsletter-section::before {
+      content: 'SUBSCRIBE';
+      position: absolute;
+      font-family: var(--font-display);
+      font-size: 14rem;
+      font-weight: 800;
+      color: rgba(255,255,255,.015);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .newsletter-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+    }
+    .newsletter-label {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: .2em;
+      margin-bottom: 16px;
+    }
+    .newsletter-inner h2 {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .newsletter-inner p {
+      color: var(--text-sec);
+      margin-bottom: 32px;
+    }
+    .newsletter-form {
+      display: flex;
+      gap: 0;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .newsletter-input {
+      flex: 1;
+      padding: 14px 20px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-right: none;
+      color: var(--text-pri);
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      outline: none;
+      transition: border-color .3s;
+    }
+    .newsletter-input::placeholder { color: var(--text-dim); }
+    .newsletter-input:focus { border-color: var(--cyan); }
+    .newsletter-submit {
+      padding: 14px 28px;
+      background: var(--cyan);
+      color: var(--bg-deep);
+      border: none;
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      cursor: pointer;
+      transition: all .3s;
+      white-space: nowrap;
+    }
+    .newsletter-submit:hover {
+      background: #5eead4;
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    footer {
+      background: #05080f;
+      border-top: 1px solid var(--border);
+      padding: 60px 0 32px;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+    .footer-brand .logo { margin-bottom: 12px; display: inline-flex; }
+    .footer-brand p {
+      font-size: .85rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+    .footer-col h4 {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      color: var(--text-sec);
+      margin-bottom: 16px;
+    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .footer-col a {
+      font-size: .82rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .footer-col a:hover { color: var(--cyan); }
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-copy {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-dim);
+    }
+    .footer-bottom-links {
+      display: flex;
+      gap: 24px;
+    }
+    .footer-bottom-links a {
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      transition: color .2s;
+    }
+    .footer-bottom-links a:hover { color: var(--cyan); }
+
+    /* =============================================
+       MODAL
+    ============================================= */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5,8,15,.92);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      max-width: 720px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      transform: translateY(20px);
+      transition: transform .3s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-header {
+      position: sticky;
+      top: 0;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+    .modal-title {
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+    .modal-close {
+      width: 32px; height: 32px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+    .modal-close:hover {
+      border-color: var(--pink);
+      color: var(--pink);
+    }
+    .modal-body { padding: 32px; }
+    .modal-app-header {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 28px;
+    }
+    .modal-app-icon {
+      width: 72px; height: 72px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      flex-shrink: 0;
+    }
+    .modal-app-info h2 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .modal-app-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-dim);
+    }
+    .modal-rating {
+      color: var(--amber);
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .modal-content {
+      font-size: .92rem;
+      color: var(--text-sec);
+      line-height: 1.9;
+    }
+    .modal-content h3 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-pri);
+      margin: 24px 0 10px;
+    }
+    .modal-content p { margin-bottom: 16px; }
+    .modal-content ul {
+      list-style: none;
+      margin-bottom: 16px;
+    }
+    .modal-content ul li {
+      padding: 6px 0 6px 20px;
+      position: relative;
+    }
+    .modal-content ul li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: var(--cyan);
+    }
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 24px 0;
+    }
+    .score-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 16px;
+      text-align: center;
+    }
+    .score-num {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+    .score-label {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .verdict-box {
+      background: var(--bg-card);
+      border-left: 3px solid var(--cyan);
+      padding: 20px 24px;
+      margin: 24px 0;
+      font-style: italic;
+      color: var(--text-sec);
+    }
+
+    /* =============================================
+       TICKER
+    ============================================= */
+    .ticker {
+      background: var(--cyan);
+      color: var(--bg-deep);
+      overflow: hidden;
+      height: 36px;
+      display: flex;
+      align-items: center;
+    }
+    .ticker-label {
+      font-family: var(--font-mono);
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      padding: 0 20px;
+      white-space: nowrap;
+      border-right: 2px solid rgba(0,0,0,.2);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      background: rgba(0,0,0,.1);
+    }
+    .ticker-track {
+      display: flex;
+      animation: ticker 30s linear infinite;
+      white-space: nowrap;
+    }
+    .ticker-item {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ticker-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(0,0,0,.3); }
+    @keyframes ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* =============================================
+       BACK TO TOP
+    ============================================= */
+    .back-top {
+      position: fixed;
+      bottom: 32px; right: 32px;
+      width: 44px; height: 44px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 50;
+      transition: all .3s;
+      font-size: 1.2rem;
+      color: var(--text-sec);
+    }
+    .back-top:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* =============================================
+       ENTER ANIMATION
+    ============================================= */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =============================================
+       SCROLLBAR
+    ============================================= */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+  </style>
+</head>
+<body>
+
+<!-- Ambient lighting -->
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <span class="ticker-label">📡 最新动态</span>
+  <div class="ticker-track" id="ticker">
+    <span class="ticker-item"><span class="ticker-dot"></span>Notion AI 新版本发布 · 任务规划体验大幅提升</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Arc Browser 0.62 更新 · 新增 AI 搜索摘要</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Raycast Pro 上线 AI 扩展市场</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Cursor 1.4 发布 · 多文件编辑能力再进化</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>CleanMyMac X 获 App Store 年度编辑推荐</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Notion AI 新版本发布 · 任务规划体验大幅提升</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Arc Browser 0.62 更新 · 新增 AI 搜索摘要</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Raycast Pro 上线 AI 扩展市场</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Cursor 1.4 发布 · 多文件编辑能力再进化</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>CleanMyMac X 获 App Store 年度编辑推荐</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="logo" href="#">
+      <span class="logo-px">PIXEL</span><span class="logo-el">LOG</span>
+      <span class="logo-dot"></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#" onclick="filterArticles('全部'); return false;">首页</a></li>
+      <li><a href="#articles">评测</a></li>
+      <li><a href="#articles">效率工具</a></li>
+      <li><a href="#articles">AI 应用</a></li>
+      <li><a href="calculator.html" target="_blank">🧮 计算器</a></li>
+      <li><a href="#about">关于</a></li>
+    </ul>
+    <a class="nav-cta" href="#newsletter">订阅周刊</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="site-wrap">
+  <section class="hero">
+    <div class="hero-left fade-up">
+      <div class="hero-label">独立博主 · 数码控</div>
+      <h1>
+        发现<span class="hl-cyan">值得</span>你<br />
+        用的<span class="hl-pink">数码应用</span>
+      </h1>
+      <p class="hero-desc">
+        专注 macOS & iOS 生产力工具深度评测，每周精选让工作与生活更高效的数字产品。不堆砌参数，只讲真实体验。
+      </p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#featured">查看评测</a>
+        <a class="btn-secondary" href="#about">了解博主</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num">128+</div>
+          <div class="stat-label">应用评测</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">3.2k</div>
+          <div class="stat-label">订阅读者</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">4年</div>
+          <div class="stat-label">持续更新</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual fade-up" style="transition-delay:.2s">
+      <div class="floating-badge">
+        <span class="fb-num">9.2</span>
+        <span class="fb-label">本月推荐</span>
+      </div>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot r"></div>
+          <div class="tb-dot y"></div>
+          <div class="tb-dot g"></div>
+          <span class="tb-title">sailorgg ~ app-review</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-prompt">$</span> <span class="t-cmd">notion-review --depth=full</span></div>
+          <div class="t-comment"># 开始深度评测…</div>
+          <br />
+          <div><span class="t-key">name:</span>     <span class="t-val">"Notion AI"</span></div>
+          <div><span class="t-key">version:</span>  <span class="t-val">"3.2.0"</span></div>
+          <div><span class="t-key">platform:</span> <span class="t-str">["macOS", "iOS", "Web"]</span></div>
+          <div><span class="t-key">rating:</span>   <span class="t-val">9.1 / 10</span></div>
+          <div><span class="t-key">verdict:</span>  <span class="t-str">"强烈推荐"</span></div>
+          <br />
+          <div><span class="t-prompt">$</span> <span class="t-cmd">publish --to=blog</span></div>
+          <div class="t-comment"># ✓ 文章已发布 · 2026-03-22</div>
+          <div><span class="t-prompt">$</span> <span class="t-cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FEATURED -->
+<div class="site-wrap" id="featured">
+  <section class="featured-section fade-up">
+    <div class="section-header">
+      <h2 class="section-title"><span class="accent">//</span> 精选评测</h2>
+      <a href="#" class="section-more">全部文章 →</a>
+    </div>
+    <div class="featured-grid">
+      <div class="featured-main" onclick="openModal('notion')">
+        <div class="fm-img">
+          <div class="fm-img-bg"></div>
+          <div class="fm-app-icon" style="background:linear-gradient(135deg,#000,#1a1a1a)">📝</div>
+          <span class="fm-cat-tag" style="color:var(--cyan)">深度评测</span>
+          <span class="fm-new-tag">NEW</span>
+        </div>
+        <div class="fm-body">
+          <h2>Notion AI 深度评测：它真的能替代你的第二大脑吗？</h2>
+          <p>用了 Notion AI 三个月后，我终于可以给出一个相对完整的答案。它强大、但不完美，适合大多数知识工作者，却未必适合所有人……</p>
+          <div class="fm-footer">
+            <div class="fm-meta">
+              <span>2026-03-22</span>
+              <span>8 分钟阅读</span>
+              <div class="fm-rating">★★★★★</div>
+            </div>
+            <div class="fm-read-btn">
+              阅读全文
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="featured-side">
+        <div class="side-card" onclick="openModal('raycast')">
+          <div class="sc-icon" style="background:linear-gradient(135deg,#ff6b6b22,#ff6b6b44)">🚀</div>
+          <div class="sc-content">
+            <h3>Raycast：macOS 上最强启动器，没有之一</h3>
+            <p>替代 Spotlight 之后，我再也没有打开过 Finder……</p>
+            <div class="sc-meta">
+              <span>2026-03-18</span>
+              <span class="sc-tag" style="color:var(--pink);border-color:var(--pink)33">效率工具</span>
+              <span style="color:var(--amber)">9.4 ★</span>
+            </div>
+          </div>
+        </div>
+        <div class="side-card" onclick="openModal('arc')">
+          <div class="sc-icon" style="background:linear-gradient(135deg,#6366f122,#6366f144)">🌐</div>
+          <div class="sc-content">
+            <h3>Arc Browser：重新定义浏览器的样子</h3>
+            <p>侧边标签、Spaces 分区、内置广告拦截，Arc 的每个设计都让人上瘾……</p>
+            <div class="sc-meta">
+              <span>2026-03-14</span>
+              <span class="sc-tag" style="color:var(--purple);border-color:var(--purple)33">浏览器</span>
+              <span style="color:var(--amber)">9.0 ★</span>
+            </div>
+          </div>
+        </div>
+        <div class="side-card" onclick="openModal('cursor')">
+          <div class="sc-icon" style="background:linear-gradient(135deg,#2dd4bf22,#2dd4bf44)">⌨️</div>
+          <div class="sc-content">
+            <h3>Cursor：当 AI 成为你的结对编程伙伴</h3>
+            <p>从怀疑到依赖，Cursor 让我的代码效率提升了何止两倍……</p>
+            <div class="sc-meta">
+              <span>2026-03-10</span>
+              <span class="sc-tag" style="color:var(--cyan);border-color:var(--cyan)33">AI 编程</span>
+              <span style="color:var(--amber)">9.6 ★</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ARTICLES SECTION -->
+<div class="site-wrap" id="articles">
+  <section class="articles-section">
+    <div class="section-header fade-up">
+      <h2 class="section-title"><span class="accent">//</span> 所有文章</h2>
+    </div>
+    <div class="filter-bar fade-up" id="filterBar">
+      <button class="filter-btn active" onclick="filterArticles('全部')">全部</button>
+      <button class="filter-btn" onclick="filterArticles('效率工具')">效率工具</button>
+      <button class="filter-btn" onclick="filterArticles('AI 应用')">AI 应用</button>
+      <button class="filter-btn" onclick="filterArticles('浏览器')">浏览器</button>
+      <button class="filter-btn" onclick="filterArticles('创作工具')">创作工具</button>
+      <button class="filter-btn" onclick="filterArticles('系统工具')">系统工具</button>
+      <button class="filter-btn" onclick="filterArticles('iOS')">iOS</button>
+    </div>
+    <div class="articles-grid" id="articlesGrid">
+      <!-- Cards filled by JS -->
+    </div>
+  </section>
+</div>
+
+<!-- SIDEBAR LAYOUT -->
+<div class="site-wrap">
+  <div class="content-layout" id="about">
+    <div><!-- placeholder --></div>
+    <aside class="sidebar">
+      <div class="sidebar-widget fade-up">
+        <div class="sw-title">关于博主</div>
+        <div class="about-avatar">🧑‍💻</div>
+        <div class="about-name">Shawn · 数码控</div>
+        <div class="about-handle">@sailorgg</div>
+        <p class="about-bio">
+          macOS 深度用户，效率工具爱好者。每周精选一款值得关注的数字产品，追求的不是功能清单，而是真实使用后的感受。
+        </p>
+        <div class="about-links">
+          <a class="about-link" title="Twitter">𝕏</a>
+          <a class="about-link" title="GitHub">⌂</a>
+          <a class="about-link" title="RSS">◎</a>
+          <a class="about-link" title="邮件">✉</a>
+        </div>
+      </div>
+
+      <div class="sidebar-widget fade-up">
+        <div class="sw-title">本月推荐榜</div>
+        <ul class="app-list">
+          <li class="app-item" onclick="openModal('cursor')">
+            <span class="app-rank">01</span>
+            <div class="app-icon-sm" style="background:linear-gradient(135deg,#2dd4bf22,#2dd4bf44)">⌨️</div>
+            <div class="app-info">
+              <div class="app-info-name">Cursor</div>
+              <div class="app-info-cat">AI 编程</div>
+            </div>
+            <span class="app-score">9.6 ★</span>
+          </li>
+          <li class="app-item" onclick="openModal('raycast')">
+            <span class="app-rank">02</span>
+            <div class="app-icon-sm" style="background:linear-gradient(135deg,#ff6b6b22,#ff6b6b44)">🚀</div>
+            <div class="app-info">
+              <div class="app-info-name">Raycast</div>
+              <div class="app-info-cat">效率工具</div>
+            </div>
+            <span class="app-score">9.4 ★</span>
+          </li>
+          <li class="app-item" onclick="openModal('notion')">
+            <span class="app-rank">03</span>
+            <div class="app-icon-sm" style="background:linear-gradient(135deg,#ffffff11,#ffffff22)">📝</div>
+            <div class="app-info">
+              <div class="app-info-name">Notion AI</div>
+              <div class="app-info-cat">知识管理</div>
+            </div>
+            <span class="app-score">9.1 ★</span>
+          </li>
+          <li class="app-item" onclick="openModal('arc')">
+            <span class="app-rank">04</span>
+            <div class="app-icon-sm" style="background:linear-gradient(135deg,#6366f122,#6366f144)">🌐</div>
+            <div class="app-info">
+              <div class="app-info-name">Arc Browser</div>
+              <div class="app-info-cat">浏览器</div>
+            </div>
+            <span class="app-score">9.0 ★</span>
+          </li>
+          <li class="app-item">
+            <span class="app-rank">05</span>
+            <div class="app-icon-sm" style="background:linear-gradient(135deg,#fbbf2422,#fbbf2444)">🎨</div>
+            <div class="app-info">
+              <div class="app-info-name">Figma</div>
+              <div class="app-info-cat">创作工具</div>
+            </div>
+            <span class="app-score">8.9 ★</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-widget fade-up">
+        <div class="sw-title">话题标签</div>
+        <div class="tag-cloud">
+          <span class="tag" onclick="filterArticles('AI 应用')">AI 应用</span>
+          <span class="tag" onclick="filterArticles('效率工具')">效率工具</span>
+          <span class="tag">macOS</span>
+          <span class="tag">iOS</span>
+          <span class="tag" onclick="filterArticles('浏览器')">浏览器</span>
+          <span class="tag">笔记</span>
+          <span class="tag" onclick="filterArticles('创作工具')">创作工具</span>
+          <span class="tag">自动化</span>
+          <span class="tag">键盘流</span>
+          <span class="tag">订阅制</span>
+          <span class="tag" onclick="filterArticles('系统工具')">系统优化</span>
+          <span class="tag">免费推荐</span>
+        </div>
+      </div>
+
+      <div class="sidebar-widget fade-up">
+        <div class="sw-title">实用工具</div>
+        <a href="calculator.html" target="_blank" class="calc-widget-link">
+          <div class="calc-widget">
+            <div class="calc-widget-icon">🧮</div>
+            <div class="calc-widget-info">
+              <div class="calc-widget-name">在线计算器</div>
+              <div class="calc-widget-desc">复古终端风格 · 支持键盘</div>
+            </div>
+            <div class="calc-widget-arrow">→</div>
+          </div>
+        </a>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- NEWSLETTER -->
+<section class="newsletter-section" id="newsletter">
+  <div class="site-wrap">
+    <div class="newsletter-inner fade-up">
+      <div class="newsletter-label">Weekly Digest</div>
+      <h2>每周数码精选<br />直达你的邮箱</h2>
+      <p>不定期分享值得关注的数字工具、使用技巧与效率心得。无广告，无灌水，随时可退订。</p>
+      <div class="newsletter-form">
+        <input class="newsletter-input" type="email" placeholder="your@email.com" />
+        <button class="newsletter-submit" onclick="handleSubscribe()">订阅</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="site-wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="logo" href="#" style="margin-bottom:12px;display:inline-flex">
+          <span class="logo-px">PIXEL</span><span class="logo-el">LOG</span>
+          <span class="logo-dot"></span>
+        </a>
+        <p>专注数码应用分享与深度评测的个人博客，发现让生活更高效的数字工具。</p>
+      </div>
+      <div class="footer-col">
+        <h4>评测分类</h4>
+        <ul>
+          <li><a href="#">效率工具</a></li>
+          <li><a href="#">AI 应用</a></li>
+          <li><a href="#">浏览器</a></li>
+          <li><a href="#">创作工具</a></li>
+          <li><a href="#">系统工具</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>快速导航</h4>
+        <ul>
+          <li><a href="#">最新文章</a></li>
+          <li><a href="#">年度推荐</a></li>
+          <li><a href="#">应用榜单</a></li>
+          <li><a href="#">关于我</a></li>
+          <li><a href="#newsletter">订阅周刊</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>联系方式</h4>
+        <ul>
+          <li><a href="#">Twitter / X</a></li>
+          <li><a href="#">GitHub-sailorgg</a></li>
+          <li><a href="#">RSS 订阅</a></li>
+          <li><a href="#">发送邮件</a></li>
+          <li><a href="#">友情链接</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 SAILORGG · 用❤️ 构建</div>
+      <div class="footer-bottom-links">
+        <a href="#">隐私政策</a>
+        <a href="#">使用条款</a>
+        <a href="#">站点地图</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- BACK TO TOP -->
+<div class="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTag">APP REVIEW</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"><!-- filled by JS --></div>
+  </div>
+</div>
+
+<script>
+  // ============ DATA ============
+  const articles = [
+    {
+      id: 'notion',
+      title: 'Notion AI 深度评测：它真的能替代你的第二大脑吗？',
+      desc: '用了 Notion AI 三个月后，我终于可以给出相对完整的答案。它强大、但不完美，适合大多数知识工作者，却未必适合所有人。',
+      icon: '📝',
+      iconBg: 'linear-gradient(135deg,#1a1a1a,#333)',
+      thumbBg: 'linear-gradient(135deg,#0f172a,#1e293b)',
+      category: 'AI 应用',
+      tagColor: 'var(--cyan)',
+      date: '2026-03-22',
+      readTime: '8 分钟',
+      rating: '★★★★★',
+      score: '9.1',
+    },
+    {
+      id: 'raycast',
+      title: 'Raycast：macOS 上最强启动器，没有之一',
+      desc: '替代 Spotlight 之后，我再也没有打开过 Finder。Raycast 用插件生态彻底改变了我操作 Mac 的方式。',
+      icon: '🚀',
+      iconBg: 'linear-gradient(135deg,#7f1d1d,#991b1b)',
+      thumbBg: 'linear-gradient(135deg,#1c0a0a,#2d1515)',
+      category: '效率工具',
+      tagColor: 'var(--pink)',
+      date: '2026-03-18',
+      readTime: '6 分钟',
+      rating: '★★★★★',
+      score: '9.4',
+    },
+    {
+      id: 'arc',
+      title: 'Arc Browser：重新定义浏览器的样子',
+      desc: '侧边标签、Spaces 分区、内置广告拦截——Arc 的每个设计决策都在挑战你对浏览器的既有认知。',
+      icon: '🌐',
+      iconBg: 'linear-gradient(135deg,#1e1b4b,#312e81)',
+      thumbBg: 'linear-gradient(135deg,#0f0c2d,#1e1b4b)',
+      category: '浏览器',
+      tagColor: 'var(--purple)',
+      date: '2026-03-14',
+      readTime: '5 分钟',
+      rating: '★★★★★',
+      score: '9.0',
+    },
+    {
+      id: 'cursor',
+      title: 'Cursor：当 AI 成为你的结对编程伙伴',
+      desc: '从怀疑到依赖，Cursor 让我的代码效率提升了何止两倍。Tab 补全、Chat 问答、多文件编辑——逐一解析。',
+      icon: '⌨️',
+      iconBg: 'linear-gradient(135deg,#022c22,#064e3b)',
+      thumbBg: 'linear-gradient(135deg,#022c22,#064e3b)',
+      category: 'AI 应用',
+      tagColor: 'var(--cyan)',
+      date: '2026-03-10',
+      readTime: '10 分钟',
+      rating: '★★★★★',
+      score: '9.6',
+    },
+    {
+      id: 'figma',
+      title: 'Figma 2026：设计工具的天花板还能再高一点',
+      desc: '新版 Figma 加入了 AI 布局建议和变量系统，设计 × 研发的协作鸿沟正在以肉眼可见的速度填平。',
+      icon: '🎨',
+      iconBg: 'linear-gradient(135deg,#1c1003,#451a03)',
+      thumbBg: 'linear-gradient(135deg,#1c0a00,#2d1500)',
+      category: '创作工具',
+      tagColor: 'var(--amber)',
+      date: '2026-03-06',
+      readTime: '7 分钟',
+      rating: '★★★★☆',
+      score: '8.9',
+    },
+    {
+      id: 'cleanmymac',
+      title: 'CleanMyMac X：每年都在买，每年都不后悔',
+      desc: '你不一定需要它，但用过一次就很难回头。清理、优化、隐私管理，macOS 系统工具的黄金标准。',
+      icon: '🔧',
+      iconBg: 'linear-gradient(135deg,#0c1a2e,#1e3a5f)',
+      thumbBg: 'linear-gradient(135deg,#08101e,#0f1e35)',
+      category: '系统工具',
+      tagColor: 'var(--text-sec)',
+      date: '2026-02-28',
+      readTime: '5 分钟',
+      rating: '★★★★☆',
+      score: '8.7',
+    },
+    {
+      id: 'obsidian',
+      title: 'Obsidian：属于极客的第二大脑',
+      desc: '纯本地、双链笔记、插件生态极度丰富。如果你愿意花时间配置，Obsidian 能成为你的知识操作系统。',
+      icon: '💎',
+      iconBg: 'linear-gradient(135deg,#2e1065,#4c1d95)',
+      thumbBg: 'linear-gradient(135deg,#1a0a3d,#2d1565)',
+      category: '效率工具',
+      tagColor: 'var(--purple)',
+      date: '2026-02-20',
+      readTime: '9 分钟',
+      rating: '★★★★☆',
+      score: '8.8',
+    },
+    {
+      id: 'scriptable',
+      title: 'Scriptable：用 JS 让 iOS 小组件活起来',
+      desc: '能跑 JavaScript 的 iOS 自动化神器。股票、天气、快捷指令——打造专属桌面的终极方案。',
+      icon: '📱',
+      iconBg: 'linear-gradient(135deg,#0c2818,#14532d)',
+      thumbBg: 'linear-gradient(135deg,#081a10,#0f2d1a)',
+      category: 'iOS',
+      tagColor: '#4ade80',
+      date: '2026-02-14',
+      readTime: '6 分钟',
+      rating: '★★★★☆',
+      score: '8.6',
+    },
+    {
+      id: 'linear',
+      title: 'Linear：让项目管理真正不那么烦人',
+      desc: '如果 Jira 让你头疼，Linear 是解药。极速、好看、CLI 友好，开发团队首选的项目管理工具。',
+      icon: '📊',
+      iconBg: 'linear-gradient(135deg,#1e0533,#3b0764)',
+      thumbBg: 'linear-gradient(135deg,#12022e,#1e0540)',
+      category: '效率工具',
+      tagColor: 'var(--pink)',
+      date: '2026-02-08',
+      readTime: '5 分钟',
+      rating: '★★★★★',
+      score: '9.2',
+    },
+  ];
+
+  // ============ RENDER ARTICLES ============
+  let currentFilter = '全部';
+
+  function renderArticles(filter) {
+    const grid = document.getElementById('articlesGrid');
+    const filtered = filter === '全部' ? articles : articles.filter(a => a.category === filter);
+    grid.innerHTML = filtered.map((a, i) => `
+      <div class="article-card fade-up" style="transition-delay:${i * 0.08}s" onclick="openModal('${a.id}')">
+        <div class="ac-thumb" style="background:${a.thumbBg}">
+          <div class="ac-thumb-bg" style="background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.04),transparent)"></div>
+          <div class="ac-app-icon" style="background:${a.iconBg}">${a.icon}</div>
+          <span class="ac-tag" style="color:${a.tagColor};border-color:${a.tagColor}66">${a.category}</span>
+        </div>
+        <div class="ac-body">
+          <h3>${a.title}</h3>
+          <p>${a.desc}</p>
+          <div class="ac-footer">
+            <div class="ac-footer-meta">
+              <span>${a.date}</span>
+              <span>${a.readTime}</span>
+            </div>
+            <div class="ac-rating">${a.score}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    observeFadeUps();
+  }
+
+  function filterArticles(cat) {
+    currentFilter = cat;
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.trim() === cat);
+    });
+    renderArticles(cat);
+    document.getElementById('articles').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ============ MODAL DATA ============
+  const modalData = {
+    notion: {
+      icon: '📝',
+      iconBg: 'linear-gradient(135deg,#1a1a1a,#333)',
+      name: 'Notion AI',
+      sub: '知识管理 · 笔记 · AI 写作',
+      date: '2026-03-22',
+      readTime: '8 分钟阅读',
+      platform: 'macOS · iOS · Web',
+      score: { ui: '9.2', 功能: '9.0', 稳定性: '8.5', 性价比: '8.8' },
+      stars: '★★★★★',
+      rating: '9.1 / 10',
+      content: `
+        <h3>背景</h3>
+        <p>Notion 从诞生之日起就是"一切皆页面"的极端践行者——笔记、数据库、看板、Wiki，全在一个产品里。而 Notion AI 的加入，让它彻底从"工具"升级为"助理"。</p>
+        <h3>核心功能</h3>
+        <ul>
+          <li>AI 写作辅助：帮你扩写、缩写、改变语气，适合快速起草各类文档</li>
+          <li>Q&A 功能：针对你的知识库提问，它会在所有页面中检索答案</li>
+          <li>自动摘要：长会议记录一键生成摘要，实测效果超出预期</li>
+          <li>翻译与格式化：处理多语言内容时特别省心</li>
+        </ul>
+        <h3>真实感受</h3>
+        <p>用了三个月，最常用的功能反而是最低调的——<strong>AI Q&A</strong>。当你有几百个 Notion 页面时，找东西靠搜索不如直接问。它的准确率约在 80% 左右，对于减少翻页时间已经足够了。</p>
+        <p>AI 写作功能整体中规中矩，用于工作邮件和会议纪要效果不错，但要指望它写出有深度的分析文章还差些意思。</p>
+        <div class="verdict-box">
+          "适合已经重度使用 Notion 的人群——AI 功能在你的既有数据越多时越有价值。如果你刚开始用 Notion，先建立习惯，再订阅 AI。"
+        </div>
+        <h3>定价</h3>
+        <p>Notion AI 需单独订阅，$10/月（或年付 $8/月），叠加在 Notion 基础订阅之上。对个人用户来说性价比偏高，团队用户则比较划算。</p>
+      `
+    },
+    raycast: {
+      icon: '🚀',
+      iconBg: 'linear-gradient(135deg,#7f1d1d,#991b1b)',
+      name: 'Raycast',
+      sub: '效率工具 · macOS 启动器',
+      date: '2026-03-18',
+      readTime: '6 分钟阅读',
+      platform: 'macOS',
+      score: { ui: '9.8', 功能: '9.5', 稳定性: '9.2', 性价比: '9.6' },
+      stars: '★★★★★',
+      rating: '9.4 / 10',
+      content: `
+        <h3>一句话定位</h3>
+        <p>Raycast 是 macOS 上的"命令中心"——它用极简的搜索框整合了启动器、剪贴板、窗口管理、插件系统，以及越来越强大的 AI 能力。</p>
+        <h3>让我留下来的功能</h3>
+        <ul>
+          <li>剪贴板历史：Cmd+Shift+V 调出过去所有复制内容，再也不怕"覆盖了"</li>
+          <li>窗口管理：快捷键分屏，完全替代了 Magnet</li>
+          <li>插件商店：GitHub 搜 PR、Figma 直接打开文件、Jira 快速新建 Issue</li>
+          <li>Snippets：输入缩写自动展开，邮件签名、代码片段一键插入</li>
+          <li>AI Chat：内置 Claude/GPT，Alt+Space 即问即用</li>
+        </ul>
+        <h3>Pro 版值得买吗？</h3>
+        <p>免费版已经相当强大，90% 的功能无需订阅。Pro 版（$96/年）主要增加了 AI 额度和 Cloud Sync。如果已经为 AI 服务单独付费，免费版完全够用。</p>
+        <div class="verdict-box">
+          "装了 Raycast 之后，Spotlight 再也没被我打开过。这是我在 Mac 上必装、且不可替代的应用，没有之一。"
+        </div>
+      `
+    },
+    arc: {
+      icon: '🌐',
+      iconBg: 'linear-gradient(135deg,#1e1b4b,#312e81)',
+      name: 'Arc Browser',
+      sub: '浏览器 · macOS · iOS',
+      date: '2026-03-14',
+      readTime: '5 分钟阅读',
+      platform: 'macOS · iOS · Windows',
+      score: { ui: '9.6', 功能: '8.8', 稳定性: '8.6', 性价比: '10' },
+      stars: '★★★★★',
+      rating: '9.0 / 10',
+      content: `
+        <h3>Arc 到底不一样在哪里？</h3>
+        <p>Arc 最大的颠覆是把标签页放到了左侧栏，并区分"固定标签"和"临时标签"——今天打开的页面到了明天自动消失，强迫你保持整洁。</p>
+        <h3>最有价值的设计</h3>
+        <ul>
+          <li>Spaces：工作/个人/项目三个空间，每个空间有独立书签和标签，告别混乱</li>
+          <li>Split View：两个页面并排，读文档写笔记同时进行</li>
+          <li>内置广告拦截：不需要安装扩展，开箱即用</li>
+          <li>Arc Search（iOS）：搜索结果直接 AI 汇总，快过任何传统搜索引擎</li>
+        </ul>
+        <h3>不足之处</h3>
+        <p>部分 Chrome 扩展兼容性存在问题；Windows 版功能相比 macOS 仍有差距；The Browser Company 近期战略调整让部分用户担忧长期维护。</p>
+        <div class="verdict-box">
+          "试用一周，你大概率回不去 Chrome。但如果你依赖特定企业级扩展，请先验证兼容性。"
+        </div>
+      `
+    },
+    cursor: {
+      icon: '⌨️',
+      iconBg: 'linear-gradient(135deg,#022c22,#064e3b)',
+      name: 'Cursor',
+      sub: 'AI 编程 · 代码编辑器',
+      date: '2026-03-10',
+      readTime: '10 分钟阅读',
+      platform: 'macOS · Windows · Linux',
+      score: { ui: '8.8', 功能: '9.8', 稳定性: '9.0', 性价比: '9.2' },
+      stars: '★★★★★',
+      rating: '9.6 / 10',
+      content: `
+        <h3>从 VS Code 迁移到 Cursor</h3>
+        <p>Cursor 基于 VS Code 构建，迁移成本极低——你的插件、主题、快捷键全部保留。它真正的差异在于 AI 能力深度集成到了编辑器的每个角落。</p>
+        <h3>三大核心能力</h3>
+        <ul>
+          <li>Tab 补全：比 GitHub Copilot 更聪明，能预测你整段代码的意图，不只是单行补全</li>
+          <li>Cmd+K 内联编辑：选中代码描述需求，AI 直接在原地修改，支持 diff 预览</li>
+          <li>Cmd+L Chat：理解整个代码库上下文提问，跨文件重构、bug 分析都能搞定</li>
+        </ul>
+        <h3>真实生产力提升</h3>
+        <p>用了两个月，写样板代码的时间减少了约 60%。调试时间也明显缩短——描述错误现象，Cursor 通常能直接定位问题所在文件和行数。</p>
+        <p>对于不熟悉的技术栈，Cursor 的效果更为显著：你不需要先把文档看完，边问边写的效率反而更高。</p>
+        <div class="verdict-box">
+          "这是我 2026 年最值得订阅的应用，没有之一。$20/月，但节省的时间价值远超这个数字。每个写代码的人都应该至少试用一个月。"
+        </div>
+      `
+    },
+  };
+
+  // ============ MODAL ============
+  function openModal(id) {
+    const d = modalData[id];
+    if (!d) return;
+    const scores = Object.entries(d.score).map(([k,v]) => `
+      <div class="score-item">
+        <div class="score-num">${v}</div>
+        <div class="score-label">${k}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('modalTag').textContent = d.sub.toUpperCase();
+    document.getElementById('modalBody').innerHTML = `
+      <div class="modal-app-header">
+        <div class="modal-app-icon" style="background:${d.iconBg}">${d.icon}</div>
+        <div class="modal-app-info">
+          <h2>${d.name}</h2>
+          <div class="modal-app-meta">
+            <span>${d.date}</span>
+            <span>${d.readTime}</span>
+            <span>${d.platform}</span>
+          </div>
+          <div class="modal-rating">${d.stars} <span style="font-family:var(--font-mono);color:var(--text-sec)">${d.rating}</span></div>
+        </div>
+      </div>
+      <div class="score-grid">${scores}</div>
+      <div class="modal-content">${d.content}</div>
+    `;
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(e) {
+    if (e && e.target !== document.getElementById('modalOverlay') && !e.currentTarget.classList?.contains('modal-close')) return;
+    if (e && e.target === document.getElementById('modal')) return;
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal(e);
+  });
+
+  // ============ NEWSLETTER ============
+  function handleSubscribe() {
+    const input = document.querySelector('.newsletter-input');
+    const btn = document.querySelector('.newsletter-submit');
+    if (!input.value || !input.value.includes('@')) {
+      input.style.borderColor = 'var(--pink)';
+      setTimeout(() => input.style.borderColor = '', 2000);
+      return;
+    }
+    btn.textContent = '✓ 已订阅';
+    btn.style.background = '#4ade80';
+    input.value = '';
+    setTimeout(() => {
+      btn.textContent = '订阅';
+      btn.style.background = '';
+    }, 3000);
+  }
+
+  // ============ SCROLL ANIMATIONS ============
+  function observeFadeUps() {
+    const els = document.querySelectorAll('.fade-up:not(.visible)');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    els.forEach(el => io.observe(el));
+  }
+
+  // ============ INIT ============
+  renderArticles('全部');
+  observeFadeUps();
+
+  // Stagger hero fade-ups on load
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.hero .fade-up').forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), i * 200);
+    });
+  });
+</script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAILORGG · 数码应用笔记</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Noto+Serif+SC:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* =============================================
+       ROOT VARIABLES
+    ============================================= */
+    :root {
+      --bg-deep:    #080b12;
+      --bg-panel:   #0e1320;
+      --bg-card:    #111827;
+      --border:     #1e293b;
+      --border-glow:#2dd4bf33;
+      --cyan:       #2dd4bf;
+      --pink:       #f472b6;
+      --amber:      #fbbf24;
+      --purple:     #a78bfa;
+      --text-pri:   #e2e8f0;
+      --text-sec:   #94a3b8;
+      --text-dim:   #475569;
+      --font-mono:  'Space Mono', monospace;
+      --font-serif: 'Noto Serif SC', serif;
+      --font-display: 'Syne', sans-serif;
+      --glow-cyan:  0 0 20px #2dd4bf40, 0 0 60px #2dd4bf18;
+      --glow-pink:  0 0 20px #f472b640, 0 0 60px #f472b618;
+    }
+
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-serif);
+      background: var(--bg-deep);
+      color: var(--text-pri);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.7;
+    }
+
+    /* Scan-line overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,.08) 2px,
+        rgba(0,0,0,.08) 4px
+      );
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* Ambient glow blobs */
+    .ambient {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: .12;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ambient-1 { width: 600px; height: 600px; background: var(--cyan);  top: -200px; left: -200px; }
+    .ambient-2 { width: 500px; height: 500px; background: var(--pink);  bottom: -150px; right: -150px; }
+    .ambient-3 { width: 400px; height: 400px; background: var(--purple); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+
+    /* =============================================
+       NAV
+    ============================================= */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(8,11,18,.85);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: .05em;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-px { color: var(--cyan); }
+    .logo-el { color: var(--text-pri); }
+    .logo-dot {
+      width: 8px; height: 8px;
+      background: var(--pink);
+      border-radius: 50%;
+      box-shadow: var(--glow-pink);
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity:1; }
+      50%  { opacity:.2; }
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 32px;
+    }
+    .nav-links a {
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      color: var(--text-sec);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      transition: color .2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 0; height: 1px;
+      background: var(--cyan);
+      transition: width .3s;
+    }
+    .nav-links a:hover { color: var(--cyan); }
+    .nav-links a:hover::after { width: 100%; }
+
+    .nav-cta {
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      padding: 8px 20px;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      background: transparent;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      transition: all .3s;
+      text-decoration: none;
+    }
+    .nav-cta:hover {
+      background: var(--cyan);
+      color: var(--bg-deep);
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* =============================================
+       LAYOUT WRAPPER
+    ============================================= */
+    .site-wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* =============================================
+       HERO
+    ============================================= */
+    .hero {
+      padding: 100px 0 80px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .hero-label {
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: .2em;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero-label::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--cyan);
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+    .hero h1 .hl-cyan { color: var(--cyan); }
+    .hero h1 .hl-pink { color: var(--pink); }
+    .hero-desc {
+      font-size: 1.05rem;
+      color: var(--text-sec);
+      max-width: 480px;
+      margin-bottom: 40px;
+      line-height: 1.8;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      padding: 14px 32px;
+      background: var(--cyan);
+      color: var(--bg-deep);
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all .3s;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+    .btn-primary:hover {
+      box-shadow: var(--glow-cyan);
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      padding: 14px 32px;
+      background: transparent;
+      color: var(--text-sec);
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all .3s;
+    }
+    .btn-secondary:hover {
+      border-color: var(--text-sec);
+      color: var(--text-pri);
+    }
+
+    /* Hero stats */
+    .hero-stats {
+      display: flex;
+      gap: 32px;
+      margin-top: 48px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+    }
+    .stat-item { text-align: left; }
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    /* Hero visual - terminal card */
+    .hero-visual {
+      position: relative;
+    }
+    .terminal {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,.5), 0 0 0 1px var(--border-glow);
+    }
+    .terminal-bar {
+      background: #0d1117;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tb-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .tb-dot.r { background: #ff5f57; }
+    .tb-dot.y { background: #febc2e; }
+    .tb-dot.g { background: #28c840; }
+    .tb-title {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-dim);
+      margin-left: 8px;
+    }
+    .terminal-body {
+      padding: 24px;
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      line-height: 2;
+    }
+    .t-prompt { color: var(--cyan); }
+    .t-cmd   { color: var(--text-pri); }
+    .t-comment { color: var(--text-dim); }
+    .t-key   { color: var(--pink); }
+    .t-val   { color: var(--amber); }
+    .t-str   { color: #86efac; }
+    .t-cursor {
+      display: inline-block;
+      width: 8px; height: 14px;
+      background: var(--cyan);
+      vertical-align: middle;
+      animation: blink .8s step-end infinite;
+    }
+
+    /* Floating badge */
+    .floating-badge {
+      position: absolute;
+      top: -20px; right: -20px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 90px; height: 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: float 4s ease-in-out infinite;
+      box-shadow: var(--glow-cyan);
+    }
+    .floating-badge .fb-num {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: var(--cyan);
+      line-height: 1;
+    }
+    .floating-badge .fb-label {
+      font-family: var(--font-mono);
+      font-size: .55rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* =============================================
+       SECTION HEADERS
+    ============================================= */
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.8rem;
+      position: relative;
+      display: inline-block;
+    }
+    .section-title .accent {
+      color: var(--cyan);
+    }
+    .section-title::after {
+      content: '';
+      position: absolute;
+      bottom: -6px; left: 0;
+      width: 40px; height: 2px;
+      background: var(--cyan);
+      box-shadow: var(--glow-cyan);
+    }
+    .section-more {
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      transition: color .2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-more:hover { color: var(--cyan); }
+
+    /* =============================================
+       FEATURED POST (large)
+    ============================================= */
+    .featured-section { padding: 60px 0; }
+    .featured-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+    .featured-main {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all .4s;
+      position: relative;
+      group: true;
+    }
+    .featured-main:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 20px 60px rgba(0,0,0,.4), inset 0 1px 0 var(--border-glow);
+      transform: translateY(-4px);
+    }
+    .featured-main .fm-img {
+      height: 260px;
+      background: linear-gradient(135deg, #0f172a, #1e3a5f);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .fm-img-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 30% 50%, #2dd4bf18 0%, transparent 60%),
+        radial-gradient(circle at 70% 30%, #a78bfa18 0%, transparent 60%);
+    }
+    .fm-app-icon {
+      width: 80px; height: 80px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+    .fm-cat-tag {
+      position: absolute;
+      top: 16px; left: 16px;
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      padding: 4px 10px;
+      border: 1px solid currentColor;
+      z-index: 2;
+    }
+    .fm-new-tag {
+      position: absolute;
+      top: 16px; right: 16px;
+      background: var(--pink);
+      color: var(--bg-deep);
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: 4px 10px;
+      z-index: 2;
+    }
+    .fm-body {
+      padding: 28px;
+    }
+    .fm-body h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .fm-body p {
+      color: var(--text-sec);
+      font-size: .9rem;
+      margin-bottom: 20px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .fm-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .fm-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-dim);
+    }
+    .fm-rating {
+      display: flex;
+      gap: 3px;
+      color: var(--amber);
+      font-size: .85rem;
+    }
+    .fm-read-btn {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .fm-read-btn svg {
+      transition: transform .3s;
+    }
+    .featured-main:hover .fm-read-btn svg {
+      transform: translateX(4px);
+    }
+
+    /* Side cards stack */
+    .featured-side {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .side-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 20px;
+      cursor: pointer;
+      transition: all .3s;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .side-card:hover {
+      border-color: var(--border-glow);
+      background: #151e30;
+      transform: translateX(4px);
+    }
+    .sc-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .sc-content h3 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .sc-content p {
+      font-size: .8rem;
+      color: var(--text-sec);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .sc-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--text-dim);
+    }
+    .sc-tag {
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: .6rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    /* =============================================
+       CATEGORY FILTER
+    ============================================= */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .filter-btn {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      transition: all .25s;
+    }
+    .filter-btn:hover,
+    .filter-btn.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(45,212,191,.06);
+    }
+
+    /* =============================================
+       ARTICLES GRID
+    ============================================= */
+    .articles-section { padding: 20px 0 80px; }
+    .articles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .article-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all .35s;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .article-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 2px; height: 0;
+      background: var(--cyan);
+      transition: height .4s;
+    }
+    .article-card:hover { border-color: #1e3a5f; transform: translateY(-6px); box-shadow: 0 24px 48px rgba(0,0,0,.4); }
+    .article-card:hover::before { height: 100%; }
+    .ac-thumb {
+      height: 160px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ac-thumb-bg {
+      position: absolute;
+      inset: 0;
+    }
+    .ac-app-icon {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 20px rgba(0,0,0,.5);
+    }
+    .ac-tag {
+      position: absolute;
+      bottom: 12px; left: 12px;
+      font-family: var(--font-mono);
+      font-size: .6rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      padding: 3px 8px;
+      border: 1px solid currentColor;
+      z-index: 2;
+    }
+    .ac-body {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .ac-body h3 {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      line-height: 1.35;
+    }
+    .ac-body p {
+      font-size: .82rem;
+      color: var(--text-sec);
+      flex: 1;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .ac-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .ac-footer-meta {
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--text-dim);
+      display: flex;
+      gap: 12px;
+    }
+    .ac-rating {
+      color: var(--amber);
+      font-size: .8rem;
+      letter-spacing: 2px;
+    }
+
+    /* =============================================
+       MAIN + SIDEBAR LAYOUT
+    ============================================= */
+    .content-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 48px;
+      padding: 40px 0 80px;
+    }
+
+    /* =============================================
+       SIDEBAR
+    ============================================= */
+    .sidebar { display: flex; flex-direction: column; gap: 32px; }
+
+    .sidebar-widget {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 24px;
+    }
+    .sw-title {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .sw-title::before {
+      content: '//';
+      color: var(--cyan);
+    }
+
+    /* About me */
+    .about-avatar {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      margin-bottom: 16px;
+      border: 2px solid var(--border);
+    }
+    .about-name {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .about-handle {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--cyan);
+      margin-bottom: 12px;
+    }
+    .about-bio {
+      font-size: .82rem;
+      color: var(--text-sec);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+    .about-links {
+      display: flex;
+      gap: 10px;
+    }
+    .about-link {
+      width: 34px; height: 34px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all .2s;
+      text-decoration: none;
+    }
+    .about-link:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    /* Top apps list */
+    .app-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .app-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .app-item:hover {
+      background: rgba(255,255,255,.03);
+      border-color: var(--border);
+    }
+    .app-rank {
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--text-dim);
+      width: 20px;
+      text-align: center;
+    }
+    .app-icon-sm {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .app-info { flex: 1; min-width: 0; }
+    .app-info-name {
+      font-size: .85rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .app-info-cat {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .app-score {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--amber);
+    }
+
+    /* Tags */
+    .tag-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tag:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      background: rgba(45,212,191,.04);
+    }
+
+    /* =============================================
+       NEWSLETTER
+    ============================================= */
+    .newsletter-section {
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 80px 0;
+      margin: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .newsletter-section::before {
+      content: 'SUBSCRIBE';
+      position: absolute;
+      font-family: var(--font-display);
+      font-size: 14rem;
+      font-weight: 800;
+      color: rgba(255,255,255,.015);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .newsletter-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+    }
+    .newsletter-label {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: .2em;
+      margin-bottom: 16px;
+    }
+    .newsletter-inner h2 {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .newsletter-inner p {
+      color: var(--text-sec);
+      margin-bottom: 32px;
+    }
+    .newsletter-form {
+      display: flex;
+      gap: 0;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .newsletter-input {
+      flex: 1;
+      padding: 14px 20px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-right: none;
+      color: var(--text-pri);
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      outline: none;
+      transition: border-color .3s;
+    }
+    .newsletter-input::placeholder { color: var(--text-dim); }
+    .newsletter-input:focus { border-color: var(--cyan); }
+    .newsletter-submit {
+      padding: 14px 28px;
+      background: var(--cyan);
+      color: var(--bg-deep);
+      border: none;
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      cursor: pointer;
+      transition: all .3s;
+      white-space: nowrap;
+    }
+    .newsletter-submit:hover {
+      background: #5eead4;
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    footer {
+      background: #05080f;
+      border-top: 1px solid var(--border);
+      padding: 60px 0 32px;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+    .footer-brand .logo { margin-bottom: 12px; display: inline-flex; }
+    .footer-brand p {
+      font-size: .85rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+    .footer-col h4 {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      color: var(--text-sec);
+      margin-bottom: 16px;
+    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .footer-col a {
+      font-size: .82rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .footer-col a:hover { color: var(--cyan); }
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .footer-copy {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-dim);
+    }
+    .footer-bottom-links {
+      display: flex;
+      gap: 24px;
+    }
+    .footer-bottom-links a {
+      font-family: var(--font-mono);
+      font-size: .65rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      transition: color .2s;
+    }
+    .footer-bottom-links a:hover { color: var(--cyan); }
+
+    /* =============================================
+       MODAL
+    ============================================= */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5,8,15,.92);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      max-width: 720px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      transform: translateY(20px);
+      transition: transform .3s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-header {
+      position: sticky;
+      top: 0;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+    .modal-title {
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+    .modal-close {
+      width: 32px; height: 32px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+    .modal-close:hover {
+      border-color: var(--pink);
+      color: var(--pink);
+    }
+    .modal-body { padding: 32px; }
+    .modal-app-header {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 28px;
+    }
+    .modal-app-icon {
+      width: 72px; height: 72px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+      flex-shrink: 0;
+    }
+    .modal-app-info h2 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+    .modal-app-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-dim);
+    }
+    .modal-rating {
+      color: var(--amber);
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .modal-content {
+      font-size: .92rem;
+      color: var(--text-sec);
+      line-height: 1.9;
+    }
+    .modal-content h3 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-pri);
+      margin: 24px 0 10px;
+    }
+    .modal-content p { margin-bottom: 16px; }
+    .modal-content ul {
+      list-style: none;
+      margin-bottom: 16px;
+    }
+    .modal-content ul li {
+      padding: 6px 0 6px 20px;
+      position: relative;
+    }
+    .modal-content ul li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: var(--cyan);
+    }
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 24px 0;
+    }
+    .score-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 16px;
+      text-align: center;
+    }
+    .score-num {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+    .score-label {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .verdict-box {
+      background: var(--bg-card);
+      border-left: 3px solid var(--cyan);
+      padding: 20px 24px;
+      margin: 24px 0;
+      font-style: italic;
+      color: var(--text-sec);
+    }
+
+    /* =============================================
+       TICKER
+    ============================================= */
+    .ticker {
+      background: var(--cyan);
+      color: var(--bg-deep);
+      overflow: hidden;
+      height: 36px;
+      display: flex;
+      align-items: center;
+    }
+    .ticker-label {
+      font-family: var(--font-mono);
+      font-size: .68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      padding: 0 20px;
+      white-space: nowrap;
+      border-right: 2px solid rgba(0,0,0,.2);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      background: rgba(0,0,0,.1);
+    }
+    .ticker-track {
+      display: flex;
+      animation: ticker 30s linear infinite;
+      white-space: nowrap;
+    }
+    .ticker-item {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ticker-dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(0,0,0,.3); }
+    @keyframes ticker {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* =============================================
+       BACK TO TOP
+    ============================================= */
+    .back-top {
+      position: fixed;
+      bottom: 32px; right: 32px;
+      width: 44px; height: 44px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 50;
+      transition: all .3s;
+      font-size: 1.2rem;
+      color: var(--text-sec);
+    }
+    .back-top:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* =============================================
+       ENTER ANIMATION
+    ============================================= */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =============================================
+       SCROLLBAR
+    ============================================= */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+  </style>
+</head>
+<body>
+
+<!-- Ambient lighting -->
+<div class="ambient ambient-1"></div>
+<div class="ambient ambient-2"></div>
+<div class="ambient ambient-3"></div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <span class="ticker-label">📡 最新动态</span>
+  <div class="ticker-track" id="ticker">
+    <span class="ticker-item"><span class="ticker-dot"></span>Notion AI 新版本发布 · 任务规划体验大幅提升</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Arc Browser 0.62 更新 · 新增 AI 搜索摘要</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Raycast Pro 上线 AI 扩展市场</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Cursor 1.4 发布 · 多文件编辑能力再进化</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>CleanMyMac X 获 App Store 年度编辑推荐</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Notion AI 新版本发布 · 任务规划体验大幅提升</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Arc Browser 0.62 更新 · 新增 AI 搜索摘要</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Raycast Pro 上线 AI 扩展市场</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>Cursor 1.4 发布 · 多文件编辑能力再进化</span>
+    <span class="ticker-item"><span class="ticker-dot"></span>CleanMyMac X 获 App Store 年度编辑推荐</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="logo" href="#">
+      <span class="logo-px">PIXEL</span><span class="logo-el">LOG</span>
+      <span class="logo-dot"></span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#" onclick="filterArticles('全部'); return false;">首页</a></li>
+      <li><a href="#articles">评测</a></li>
+      <li><a href="#articles">效率工具</a></li>
+      <li><a href="#articles">AI 应用</a></li>
+      <li><a href="#about">关于</a></li>
+    </ul>
+    <a class="nav-cta" href="#newsletter">订阅周刊</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="site-wrap">
+  <section class="hero">
+    <div class="hero-left fade-up">
+      <div class="hero-label">独立博主 · 数码控</div>
+      <h1>
+        发现<span class="hl-cyan">值得</span>你<br />
+        用的<span class="hl-pink">数码应用</span>
+      </h1>
+      <p class="hero-desc">
+        专注 macOS & iOS 生产力工具深度评测，每周精选让工作与生活更高效的数字产品。不堆砌参数，只讲真实体验。
+      </p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#featured">查看评测</a>
+        <a class="btn-secondary" href="#about">了解博主</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num">128+</div>
+          <div class="stat-label">应用评测</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">3.2k</div>
+          <div class="stat-label">订阅读者</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">4年</div>
+          <div class="stat-label">持续更新</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual fade-up" style="transition-delay:.2s">
+      <div class="floating-badge">
+        <span class="fb-num">9.2</span>
+        <span class="fb-label">本月推荐</span>
+      </div>
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="tb-dot r"></div>
+          <div class="tb-dot y"></div>
+          <div class="tb-dot g"></div>
+          <span class="tb-title">sailorgg ~ app-review</span>
+        </div>
+        <div class="terminal-body">
+          <div><span class="t-prompt">$</span> <span class="t-cmd">notion-review --depth=full</span></div>
+          <div class="t-comment"># 开始深度评测…</div>
+          <br />
+          <div><span class="t-key">name:</span>     <span class="t-val">"Notion AI"</span></div>
+          <div><span class="t-key">version:</span>  <span class="t-val">"3.2.0"</span></div>
+          <div><span class="t-key">platform:</span> <span class="t-str">["macOS", "iOS", "Web"]</span></div>
+          <div><span class="t-key">rating:</span>   <span class="t-val">9.1 / 10</span></div>
+          <div><span class="t-key">verdict:</span>  <span class="t-str">"强烈推荐"</span></div>
+          <br />
+          <div><span class="t-prompt">$</span> <span class="t-cmd">publish --to=blog</span></div>
+          <div class="t-comment"># ✓ 文章已发布 · 2026-03-22</div>
+          <div><span class="t-prompt">$</span> <span class="t-cursor"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- FEATURED -->
+<div class="site-wrap" id="featured">
+  <section class="featured-section fade-up">
+    <div class="section-header">
+      <h2 class="section-title"><span class="accent">//</span> 精选评测</h2>
+      <a href="#" class="section-more">全部文章 →</a>
+    </div>
+    <div class="featured-grid">
+      <div class="featured-main" onclick="openModal('notion')">
+        <div class="fm-img">
+          <div class="fm-img-bg"></div>
+          <div class="fm-app-icon" style="background:linear-gradient(135deg,#000,#1a1a1a)">📝</div>
+          <span class="fm-cat-tag" style="color:var(--cyan)">深度评测</span>
+          <span class="fm-new-tag">NEW</span>
+        </div>
+        <div class="fm-body">
+          <h2>Notion AI 深度评测：它真的能替代你的第二大脑吗？</h2>
+          <p>用了 Notion AI 三个月后，我终于可以给出一个相对完整的答案。它强大、但不完美，适合大多数知识工作者，却未必适合所有人……</p>
+          <div class="fm-footer">
+            <div class="fm-meta">
+              <span>2026-03-22</span>
+              <span>8 分钟阅读</span>
+              <div class="fm-rating">★★★★★</div>
+            </div>
+            <div class="fm-read-btn">
+              阅读全文
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="featured-side">
+        <div class="side-card" onclick="openModal('raycast')">
+          <div class="sc-icon" style="background:linear-gradient(135deg,#ff6b6b22,#ff6b6b44)">🚀</div>
+          <div class="sc-content">
+            <h3>Raycast：macOS 上最强启动器，没有之一</h3>
+            <p>替代 Spotlight 之后，我再也没有打开过 Finder……</p>
+            <div class="sc-meta">
+              <span>2026-03-18</span>
+              <span class="sc-tag" style="color:var(--pink);border-color:var(--pink)33">效率工具</span>
+              <span style="color:var(--amber)">9.4 ★</span>
+            </div>
+          </div>
+        </div>
+        <div class="side-card" onclick="openModal('arc')">
+          <div class="sc-icon" style="background:linear-gradient(135deg,#6366f122,#6366f144)">🌐</div>
+          <div class="sc-content">
+            <h3>Arc Browser：重新定义浏览器的样子</h3>
+            <p>侧边标签、Spaces 分区、内置广告拦截，Arc 的每个设计都让人上瘾……</p>
+            <div class="sc-meta">
+              <span>2026-03-14</span>
+              <span class="sc-tag" style="color:var(--purple);border-color:var(--purple)33">浏览器</span>
+              <span style="color:var(--amber)">9.0 ★</span>
+            </div>
+          </div>
+        </div>
+        <div class="side-card" onclick="openModal('cursor')">
+          <div class="sc-icon" style="background:linear-gradient(135deg,#2dd4bf22,#2dd4bf44)">⌨️</div>
+          <div class="sc-content">
+            <h3>Cursor：当 AI 成为你的结对编程伙伴</h3>
+            <p>从怀疑到依赖，Cursor 让我的代码效率提升了何止两倍……</p>
+            <div class="sc-meta">
+              <span>2026-03-10</span>
+              <span class="sc-tag" style="color:var(--cyan);border-color:var(--cyan)33">AI 编程</span>
+              <span style="color:var(--amber)">9.6 ★</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ARTICLES SECTION -->
+<div class="site-wrap" id="articles">
+  <section class="articles-section">
+    <div class="section-header fade-up">
+      <h2 class="section-title"><span class="accent">//</span> 所有文章</h2>
+    </div>
+    <div class="filter-bar fade-up" id="filterBar">
+      <button class="filter-btn active" onclick="filterArticles('全部')">全部</button>
+      <button class="filter-btn" onclick="filterArticles('效率工具')">效率工具</button>
+      <button class="filter-btn" onclick="filterArticles('AI 应用')">AI 应用</button>
+      <button class="filter-btn" onclick="filterArticles('浏览器')">浏览器</button>
+      <button class="filter-btn" onclick="filterArticles('创作工具')">创作工具</button>
+      <button class="filter-btn" onclick="filterArticles('系统工具')">系统工具</button>
+      <button class="filter-btn" onclick="filterArticles('iOS')">iOS</button>
+    </div>
+    <div class="articles-grid" id="articlesGrid">
+      <!-- Cards filled by JS -->
+    </div>
+  </section>
+</div>
+
+<!-- SIDEBAR LAYOUT -->
+<div class="site-wrap">
+  <div class="content-layout" id="about">
+    <div><!-- placeholder --></div>
+    <aside class="sidebar">
+      <div class="sidebar-widget fade-up">
+        <div class="sw-title">关于博主</div>
+        <div class="about-avatar">🧑‍💻</div>
+        <div class="about-name">Shawn · 数码控</div>
+        <div class="about-handle">@sailorgg</div>
+        <p class="about-bio">
+          macOS 深度用户，效率工具爱好者。每周精选一款值得关注的数字产品，追求的不是功能清单，而是真实使用后的感受。
+        </p>
+        <div class="about-links">
+          <a class="about-link" title="Twitter">𝕏</a>
+          <a class="about-link" title="GitHub">⌂</a>
+          <a class="about-link" title="RSS">◎</a>
+          <a class="about-link" title="邮件">✉</a>
+        </div>
+      </div>
+
+      <div class="sidebar-widget fade-up">
+        <div class="sw-title">本月推荐榜</div>
+        <ul class="app-list">
+          <li class="app-item" onclick="openModal('cursor')">
+            <span class="app-rank">01</span>
+            <div class="app-icon-sm" style="background:linear-gradient(135deg,#2dd4bf22,#2dd4bf44)">⌨️</div>
+            <div class="app-info">
+              <div class="app-info-name">Cursor</div>
+              <div class="app-info-cat">AI 编程</div>
+            </div>
+            <span class="app-score">9.6 ★</span>
+          </li>
+          <li class="app-item" onclick="openModal('raycast')">
+            <span class="app-rank">02</span>
+            <div class="app-icon-sm" style="background:linear-gradient(135deg,#ff6b6b22,#ff6b6b44)">🚀</div>
+            <div class="app-info">
+              <div class="app-info-name">Raycast</div>
+              <div class="app-info-cat">效率工具</div>
+            </div>
+            <span class="app-score">9.4 ★</span>
+          </li>
+          <li class="app-item" onclick="openModal('notion')">
+            <span class="app-rank">03</span>
+            <div class="app-icon-sm" style="background:linear-gradient(135deg,#ffffff11,#ffffff22)">📝</div>
+            <div class="app-info">
+              <div class="app-info-name">Notion AI</div>
+              <div class="app-info-cat">知识管理</div>
+            </div>
+            <span class="app-score">9.1 ★</span>
+          </li>
+          <li class="app-item" onclick="openModal('arc')">
+            <span class="app-rank">04</span>
+            <div class="app-icon-sm" style="background:linear-gradient(135deg,#6366f122,#6366f144)">🌐</div>
+            <div class="app-info">
+              <div class="app-info-name">Arc Browser</div>
+              <div class="app-info-cat">浏览器</div>
+            </div>
+            <span class="app-score">9.0 ★</span>
+          </li>
+          <li class="app-item">
+            <span class="app-rank">05</span>
+            <div class="app-icon-sm" style="background:linear-gradient(135deg,#fbbf2422,#fbbf2444)">🎨</div>
+            <div class="app-info">
+              <div class="app-info-name">Figma</div>
+              <div class="app-info-cat">创作工具</div>
+            </div>
+            <span class="app-score">8.9 ★</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-widget fade-up">
+        <div class="sw-title">话题标签</div>
+        <div class="tag-cloud">
+          <span class="tag" onclick="filterArticles('AI 应用')">AI 应用</span>
+          <span class="tag" onclick="filterArticles('效率工具')">效率工具</span>
+          <span class="tag">macOS</span>
+          <span class="tag">iOS</span>
+          <span class="tag" onclick="filterArticles('浏览器')">浏览器</span>
+          <span class="tag">笔记</span>
+          <span class="tag" onclick="filterArticles('创作工具')">创作工具</span>
+          <span class="tag">自动化</span>
+          <span class="tag">键盘流</span>
+          <span class="tag">订阅制</span>
+          <span class="tag" onclick="filterArticles('系统工具')">系统优化</span>
+          <span class="tag">免费推荐</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- NEWSLETTER -->
+<section class="newsletter-section" id="newsletter">
+  <div class="site-wrap">
+    <div class="newsletter-inner fade-up">
+      <div class="newsletter-label">Weekly Digest</div>
+      <h2>每周数码精选<br />直达你的邮箱</h2>
+      <p>不定期分享值得关注的数字工具、使用技巧与效率心得。无广告，无灌水，随时可退订。</p>
+      <div class="newsletter-form">
+        <input class="newsletter-input" type="email" placeholder="your@email.com" />
+        <button class="newsletter-submit" onclick="handleSubscribe()">订阅</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="site-wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="logo" href="#" style="margin-bottom:12px;display:inline-flex">
+          <span class="logo-px">PIXEL</span><span class="logo-el">LOG</span>
+          <span class="logo-dot"></span>
+        </a>
+        <p>专注数码应用分享与深度评测的个人博客，发现让生活更高效的数字工具。</p>
+      </div>
+      <div class="footer-col">
+        <h4>评测分类</h4>
+        <ul>
+          <li><a href="#">效率工具</a></li>
+          <li><a href="#">AI 应用</a></li>
+          <li><a href="#">浏览器</a></li>
+          <li><a href="#">创作工具</a></li>
+          <li><a href="#">系统工具</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>快速导航</h4>
+        <ul>
+          <li><a href="#">最新文章</a></li>
+          <li><a href="#">年度推荐</a></li>
+          <li><a href="#">应用榜单</a></li>
+          <li><a href="#">关于我</a></li>
+          <li><a href="#newsletter">订阅周刊</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>联系方式</h4>
+        <ul>
+          <li><a href="#">Twitter / X</a></li>
+          <li><a href="#">GitHub</a></li>
+          <li><a href="#">RSS 订阅</a></li>
+          <li><a href="#">发送邮件</a></li>
+          <li><a href="#">友情链接</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 SAILORGG · 用❤️ 构建</div>
+      <div class="footer-bottom-links">
+        <a href="#">隐私政策</a>
+        <a href="#">使用条款</a>
+        <a href="#">站点地图</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- BACK TO TOP -->
+<div class="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTag">APP REVIEW</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"><!-- filled by JS --></div>
+  </div>
+</div>
+
+<script>
+  // ============ DATA ============
+  const articles = [
+    {
+      id: 'notion',
+      title: 'Notion AI 深度评测：它真的能替代你的第二大脑吗？',
+      desc: '用了 Notion AI 三个月后，我终于可以给出相对完整的答案。它强大、但不完美，适合大多数知识工作者，却未必适合所有人。',
+      icon: '📝',
+      iconBg: 'linear-gradient(135deg,#1a1a1a,#333)',
+      thumbBg: 'linear-gradient(135deg,#0f172a,#1e293b)',
+      category: 'AI 应用',
+      tagColor: 'var(--cyan)',
+      date: '2026-03-22',
+      readTime: '8 分钟',
+      rating: '★★★★★',
+      score: '9.1',
+    },
+    {
+      id: 'raycast',
+      title: 'Raycast：macOS 上最强启动器，没有之一',
+      desc: '替代 Spotlight 之后，我再也没有打开过 Finder。Raycast 用插件生态彻底改变了我操作 Mac 的方式。',
+      icon: '🚀',
+      iconBg: 'linear-gradient(135deg,#7f1d1d,#991b1b)',
+      thumbBg: 'linear-gradient(135deg,#1c0a0a,#2d1515)',
+      category: '效率工具',
+      tagColor: 'var(--pink)',
+      date: '2026-03-18',
+      readTime: '6 分钟',
+      rating: '★★★★★',
+      score: '9.4',
+    },
+    {
+      id: 'arc',
+      title: 'Arc Browser：重新定义浏览器的样子',
+      desc: '侧边标签、Spaces 分区、内置广告拦截——Arc 的每个设计决策都在挑战你对浏览器的既有认知。',
+      icon: '🌐',
+      iconBg: 'linear-gradient(135deg,#1e1b4b,#312e81)',
+      thumbBg: 'linear-gradient(135deg,#0f0c2d,#1e1b4b)',
+      category: '浏览器',
+      tagColor: 'var(--purple)',
+      date: '2026-03-14',
+      readTime: '5 分钟',
+      rating: '★★★★★',
+      score: '9.0',
+    },
+    {
+      id: 'cursor',
+      title: 'Cursor：当 AI 成为你的结对编程伙伴',
+      desc: '从怀疑到依赖，Cursor 让我的代码效率提升了何止两倍。Tab 补全、Chat 问答、多文件编辑——逐一解析。',
+      icon: '⌨️',
+      iconBg: 'linear-gradient(135deg,#022c22,#064e3b)',
+      thumbBg: 'linear-gradient(135deg,#022c22,#064e3b)',
+      category: 'AI 应用',
+      tagColor: 'var(--cyan)',
+      date: '2026-03-10',
+      readTime: '10 分钟',
+      rating: '★★★★★',
+      score: '9.6',
+    },
+    {
+      id: 'figma',
+      title: 'Figma 2026：设计工具的天花板还能再高一点',
+      desc: '新版 Figma 加入了 AI 布局建议和变量系统，设计 × 研发的协作鸿沟正在以肉眼可见的速度填平。',
+      icon: '🎨',
+      iconBg: 'linear-gradient(135deg,#1c1003,#451a03)',
+      thumbBg: 'linear-gradient(135deg,#1c0a00,#2d1500)',
+      category: '创作工具',
+      tagColor: 'var(--amber)',
+      date: '2026-03-06',
+      readTime: '7 分钟',
+      rating: '★★★★☆',
+      score: '8.9',
+    },
+    {
+      id: 'cleanmymac',
+      title: 'CleanMyMac X：每年都在买，每年都不后悔',
+      desc: '你不一定需要它，但用过一次就很难回头。清理、优化、隐私管理，macOS 系统工具的黄金标准。',
+      icon: '🔧',
+      iconBg: 'linear-gradient(135deg,#0c1a2e,#1e3a5f)',
+      thumbBg: 'linear-gradient(135deg,#08101e,#0f1e35)',
+      category: '系统工具',
+      tagColor: 'var(--text-sec)',
+      date: '2026-02-28',
+      readTime: '5 分钟',
+      rating: '★★★★☆',
+      score: '8.7',
+    },
+    {
+      id: 'obsidian',
+      title: 'Obsidian：属于极客的第二大脑',
+      desc: '纯本地、双链笔记、插件生态极度丰富。如果你愿意花时间配置，Obsidian 能成为你的知识操作系统。',
+      icon: '💎',
+      iconBg: 'linear-gradient(135deg,#2e1065,#4c1d95)',
+      thumbBg: 'linear-gradient(135deg,#1a0a3d,#2d1565)',
+      category: '效率工具',
+      tagColor: 'var(--purple)',
+      date: '2026-02-20',
+      readTime: '9 分钟',
+      rating: '★★★★☆',
+      score: '8.8',
+    },
+    {
+      id: 'scriptable',
+      title: 'Scriptable：用 JS 让 iOS 小组件活起来',
+      desc: '能跑 JavaScript 的 iOS 自动化神器。股票、天气、快捷指令——打造专属桌面的终极方案。',
+      icon: '📱',
+      iconBg: 'linear-gradient(135deg,#0c2818,#14532d)',
+      thumbBg: 'linear-gradient(135deg,#081a10,#0f2d1a)',
+      category: 'iOS',
+      tagColor: '#4ade80',
+      date: '2026-02-14',
+      readTime: '6 分钟',
+      rating: '★★★★☆',
+      score: '8.6',
+    },
+    {
+      id: 'linear',
+      title: 'Linear：让项目管理真正不那么烦人',
+      desc: '如果 Jira 让你头疼，Linear 是解药。极速、好看、CLI 友好，开发团队首选的项目管理工具。',
+      icon: '📊',
+      iconBg: 'linear-gradient(135deg,#1e0533,#3b0764)',
+      thumbBg: 'linear-gradient(135deg,#12022e,#1e0540)',
+      category: '效率工具',
+      tagColor: 'var(--pink)',
+      date: '2026-02-08',
+      readTime: '5 分钟',
+      rating: '★★★★★',
+      score: '9.2',
+    },
+  ];
+
+  // ============ RENDER ARTICLES ============
+  let currentFilter = '全部';
+
+  function renderArticles(filter) {
+    const grid = document.getElementById('articlesGrid');
+    const filtered = filter === '全部' ? articles : articles.filter(a => a.category === filter);
+    grid.innerHTML = filtered.map((a, i) => `
+      <div class="article-card fade-up" style="transition-delay:${i * 0.08}s" onclick="openModal('${a.id}')">
+        <div class="ac-thumb" style="background:${a.thumbBg}">
+          <div class="ac-thumb-bg" style="background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.04),transparent)"></div>
+          <div class="ac-app-icon" style="background:${a.iconBg}">${a.icon}</div>
+          <span class="ac-tag" style="color:${a.tagColor};border-color:${a.tagColor}66">${a.category}</span>
+        </div>
+        <div class="ac-body">
+          <h3>${a.title}</h3>
+          <p>${a.desc}</p>
+          <div class="ac-footer">
+            <div class="ac-footer-meta">
+              <span>${a.date}</span>
+              <span>${a.readTime}</span>
+            </div>
+            <div class="ac-rating">${a.score}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    observeFadeUps();
+  }
+
+  function filterArticles(cat) {
+    currentFilter = cat;
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.trim() === cat);
+    });
+    renderArticles(cat);
+    document.getElementById('articles').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ============ MODAL DATA ============
+  const modalData = {
+    notion: {
+      icon: '📝',
+      iconBg: 'linear-gradient(135deg,#1a1a1a,#333)',
+      name: 'Notion AI',
+      sub: '知识管理 · 笔记 · AI 写作',
+      date: '2026-03-22',
+      readTime: '8 分钟阅读',
+      platform: 'macOS · iOS · Web',
+      score: { ui: '9.2', 功能: '9.0', 稳定性: '8.5', 性价比: '8.8' },
+      stars: '★★★★★',
+      rating: '9.1 / 10',
+      content: `
+        <h3>背景</h3>
+        <p>Notion 从诞生之日起就是"一切皆页面"的极端践行者——笔记、数据库、看板、Wiki，全在一个产品里。而 Notion AI 的加入，让它彻底从"工具"升级为"助理"。</p>
+        <h3>核心功能</h3>
+        <ul>
+          <li>AI 写作辅助：帮你扩写、缩写、改变语气，适合快速起草各类文档</li>
+          <li>Q&A 功能：针对你的知识库提问，它会在所有页面中检索答案</li>
+          <li>自动摘要：长会议记录一键生成摘要，实测效果超出预期</li>
+          <li>翻译与格式化：处理多语言内容时特别省心</li>
+        </ul>
+        <h3>真实感受</h3>
+        <p>用了三个月，最常用的功能反而是最低调的——<strong>AI Q&A</strong>。当你有几百个 Notion 页面时，找东西靠搜索不如直接问。它的准确率约在 80% 左右，对于减少翻页时间已经足够了。</p>
+        <p>AI 写作功能整体中规中矩，用于工作邮件和会议纪要效果不错，但要指望它写出有深度的分析文章还差些意思。</p>
+        <div class="verdict-box">
+          "适合已经重度使用 Notion 的人群——AI 功能在你的既有数据越多时越有价值。如果你刚开始用 Notion，先建立习惯，再订阅 AI。"
+        </div>
+        <h3>定价</h3>
+        <p>Notion AI 需单独订阅，$10/月（或年付 $8/月），叠加在 Notion 基础订阅之上。对个人用户来说性价比偏高，团队用户则比较划算。</p>
+      `
+    },
+    raycast: {
+      icon: '🚀',
+      iconBg: 'linear-gradient(135deg,#7f1d1d,#991b1b)',
+      name: 'Raycast',
+      sub: '效率工具 · macOS 启动器',
+      date: '2026-03-18',
+      readTime: '6 分钟阅读',
+      platform: 'macOS',
+      score: { ui: '9.8', 功能: '9.5', 稳定性: '9.2', 性价比: '9.6' },
+      stars: '★★★★★',
+      rating: '9.4 / 10',
+      content: `
+        <h3>一句话定位</h3>
+        <p>Raycast 是 macOS 上的"命令中心"——它用极简的搜索框整合了启动器、剪贴板、窗口管理、插件系统，以及越来越强大的 AI 能力。</p>
+        <h3>让我留下来的功能</h3>
+        <ul>
+          <li>剪贴板历史：Cmd+Shift+V 调出过去所有复制内容，再也不怕"覆盖了"</li>
+          <li>窗口管理：快捷键分屏，完全替代了 Magnet</li>
+          <li>插件商店：GitHub 搜 PR、Figma 直接打开文件、Jira 快速新建 Issue</li>
+          <li>Snippets：输入缩写自动展开，邮件签名、代码片段一键插入</li>
+          <li>AI Chat：内置 Claude/GPT，Alt+Space 即问即用</li>
+        </ul>
+        <h3>Pro 版值得买吗？</h3>
+        <p>免费版已经相当强大，90% 的功能无需订阅。Pro 版（$96/年）主要增加了 AI 额度和 Cloud Sync。如果已经为 AI 服务单独付费，免费版完全够用。</p>
+        <div class="verdict-box">
+          "装了 Raycast 之后，Spotlight 再也没被我打开过。这是我在 Mac 上必装、且不可替代的应用，没有之一。"
+        </div>
+      `
+    },
+    arc: {
+      icon: '🌐',
+      iconBg: 'linear-gradient(135deg,#1e1b4b,#312e81)',
+      name: 'Arc Browser',
+      sub: '浏览器 · macOS · iOS',
+      date: '2026-03-14',
+      readTime: '5 分钟阅读',
+      platform: 'macOS · iOS · Windows',
+      score: { ui: '9.6', 功能: '8.8', 稳定性: '8.6', 性价比: '10' },
+      stars: '★★★★★',
+      rating: '9.0 / 10',
+      content: `
+        <h3>Arc 到底不一样在哪里？</h3>
+        <p>Arc 最大的颠覆是把标签页放到了左侧栏，并区分"固定标签"和"临时标签"——今天打开的页面到了明天自动消失，强迫你保持整洁。</p>
+        <h3>最有价值的设计</h3>
+        <ul>
+          <li>Spaces：工作/个人/项目三个空间，每个空间有独立书签和标签，告别混乱</li>
+          <li>Split View：两个页面并排，读文档写笔记同时进行</li>
+          <li>内置广告拦截：不需要安装扩展，开箱即用</li>
+          <li>Arc Search（iOS）：搜索结果直接 AI 汇总，快过任何传统搜索引擎</li>
+        </ul>
+        <h3>不足之处</h3>
+        <p>部分 Chrome 扩展兼容性存在问题；Windows 版功能相比 macOS 仍有差距；The Browser Company 近期战略调整让部分用户担忧长期维护。</p>
+        <div class="verdict-box">
+          "试用一周，你大概率回不去 Chrome。但如果你依赖特定企业级扩展，请先验证兼容性。"
+        </div>
+      `
+    },
+    cursor: {
+      icon: '⌨️',
+      iconBg: 'linear-gradient(135deg,#022c22,#064e3b)',
+      name: 'Cursor',
+      sub: 'AI 编程 · 代码编辑器',
+      date: '2026-03-10',
+      readTime: '10 分钟阅读',
+      platform: 'macOS · Windows · Linux',
+      score: { ui: '8.8', 功能: '9.8', 稳定性: '9.0', 性价比: '9.2' },
+      stars: '★★★★★',
+      rating: '9.6 / 10',
+      content: `
+        <h3>从 VS Code 迁移到 Cursor</h3>
+        <p>Cursor 基于 VS Code 构建，迁移成本极低——你的插件、主题、快捷键全部保留。它真正的差异在于 AI 能力深度集成到了编辑器的每个角落。</p>
+        <h3>三大核心能力</h3>
+        <ul>
+          <li>Tab 补全：比 GitHub Copilot 更聪明，能预测你整段代码的意图，不只是单行补全</li>
+          <li>Cmd+K 内联编辑：选中代码描述需求，AI 直接在原地修改，支持 diff 预览</li>
+          <li>Cmd+L Chat：理解整个代码库上下文提问，跨文件重构、bug 分析都能搞定</li>
+        </ul>
+        <h3>真实生产力提升</h3>
+        <p>用了两个月，写样板代码的时间减少了约 60%。调试时间也明显缩短——描述错误现象，Cursor 通常能直接定位问题所在文件和行数。</p>
+        <p>对于不熟悉的技术栈，Cursor 的效果更为显著：你不需要先把文档看完，边问边写的效率反而更高。</p>
+        <div class="verdict-box">
+          "这是我 2026 年最值得订阅的应用，没有之一。$20/月，但节省的时间价值远超这个数字。每个写代码的人都应该至少试用一个月。"
+        </div>
+      `
+    },
+  };
+
+  // ============ MODAL ============
+  function openModal(id) {
+    const d = modalData[id];
+    if (!d) return;
+    const scores = Object.entries(d.score).map(([k,v]) => `
+      <div class="score-item">
+        <div class="score-num">${v}</div>
+        <div class="score-label">${k}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('modalTag').textContent = d.sub.toUpperCase();
+    document.getElementById('modalBody').innerHTML = `
+      <div class="modal-app-header">
+        <div class="modal-app-icon" style="background:${d.iconBg}">${d.icon}</div>
+        <div class="modal-app-info">
+          <h2>${d.name}</h2>
+          <div class="modal-app-meta">
+            <span>${d.date}</span>
+            <span>${d.readTime}</span>
+            <span>${d.platform}</span>
+          </div>
+          <div class="modal-rating">${d.stars} <span style="font-family:var(--font-mono);color:var(--text-sec)">${d.rating}</span></div>
+        </div>
+      </div>
+      <div class="score-grid">${scores}</div>
+      <div class="modal-content">${d.content}</div>
+    `;
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(e) {
+    if (e && e.target !== document.getElementById('modalOverlay') && !e.currentTarget.classList?.contains('modal-close')) return;
+    if (e && e.target === document.getElementById('modal')) return;
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal(e);
+  });
+
+  // ============ NEWSLETTER ============
+  function handleSubscribe() {
+    const input = document.querySelector('.newsletter-input');
+    const btn = document.querySelector('.newsletter-submit');
+    if (!input.value || !input.value.includes('@')) {
+      input.style.borderColor = 'var(--pink)';
+      setTimeout(() => input.style.borderColor = '', 2000);
+      return;
+    }
+    btn.textContent = '✓ 已订阅';
+    btn.style.background = '#4ade80';
+    input.value = '';
+    setTimeout(() => {
+      btn.textContent = '订阅';
+      btn.style.background = '';
+    }, 3000);
+  }
+
+  // ============ SCROLL ANIMATIONS ============
+  function observeFadeUps() {
+    const els = document.querySelectorAll('.fade-up:not(.visible)');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    els.forEach(el => io.observe(el));
+  }
+
+  // ============ INIT ============
+  renderArticles('全部');
+  observeFadeUps();
+
+  // Stagger hero fade-ups on load
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.hero .fade-up').forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), i * 200);
+    });
+  });
+</script>
+</body>
+</html>
